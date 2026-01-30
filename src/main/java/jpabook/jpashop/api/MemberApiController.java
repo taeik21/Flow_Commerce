@@ -23,6 +23,15 @@ public class MemberApiController {
         return new CreateMemberResponse(memberId);
     }
 
+    @PutMapping("/api/members/{id}")
+    public UpdateMemberResponse updateMember(
+            @PathVariable("id") Long id,
+            @RequestBody @Valid UpdateMemberRequest request) {
+        memberService.update(id, request.getName());
+        Member member = memberService.findOne(id);
+        return new UpdateMemberResponse(member.getId(), member.getName());
+    }
+
     @Data
     static class CreateMemberRequest {
         @NotEmpty
@@ -38,5 +47,15 @@ public class MemberApiController {
         }
     }
 
+    @Data
+    static class UpdateMemberRequest {
+        private String name;
+    }
 
+    @Data
+    @AllArgsConstructor
+    static class UpdateMemberResponse {
+        private Long id;
+        private String name;
+    }
 }
