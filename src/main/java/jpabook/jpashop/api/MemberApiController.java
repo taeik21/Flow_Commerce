@@ -9,10 +9,36 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 @RequiredArgsConstructor
 public class MemberApiController {
     private final MemberService memberService;
+
+    @GetMapping("/api/members")
+    public Result members() {
+        List<Member> findMembers = memberService.findMembers();
+        List<MemberDto> collect = findMembers.stream()
+                .map(m -> new MemberDto(m.getName()))
+                .collect(Collectors.toList());
+
+        return new Result(collect);
+    }
+
+    @Data
+    @AllArgsConstructor
+    static class Result<T> {
+        private T data;
+    }
+
+    @Data
+    @AllArgsConstructor
+    static class MemberDto {
+        private String name;
+    }
+
 
     @PostMapping("/api/members")
     public CreateMemberResponse saveMember(@RequestBody @Valid CreateMemberRequest request) {
@@ -21,15 +47,6 @@ public class MemberApiController {
 
         Long memberId = memberService.join(member);
         return new CreateMemberResponse(memberId);
-    }
-
-    @PutMapping("/api/members/{id}")
-    public UpdateMemberResponse updateMember(
-            @PathVariable("id") Long id,
-            @RequestBody @Valid UpdateMemberRequest request) {
-        memberService.update(id, request.getName());
-        Member member = memberService.findOne(id);
-        return new UpdateMemberResponse(member.getId(), member.getName());
     }
 
     @Data
@@ -47,7 +64,18 @@ public class MemberApiController {
         }
     }
 
+    @PutMapping("/api/members/{id}")
+    public UpdateMemberResponse updateMember(
+            @PathVariable("id") Long id,
+            @RequestBody @Valid UpdateMemberRequest request) {
+        memberService.update(id, request.getName());
+        Member member = memberService.findOne(id);
+        return new UpdateMemberResponse(member.getId(), member.getName());
+    }
+
+
     @Data
+    @AllArgsConstructor
     static class UpdateMemberRequest {
         private String name;
     }
